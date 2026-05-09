@@ -10,7 +10,7 @@ from collections import defaultdict
 # ──────────────────────────────────────────────
 #  CONFIGURATION – modifie ces valeurs
 # ──────────────────────────────────────────────
-TOKEN = "TON_TOKEN_ICI"          # Remplace par ton token bot
+TOKEN = os.environ.get("DISCORD_TOKEN")
 PREFIX = "+"                      # Préfixe des commandes
 MUTE_ROLE_NAME = "Muted"          # Nom du rôle muet (créé auto si absent)
 LOG_CHANNEL_NAME = "mod-logs"     # Salon de logs (optionnel)

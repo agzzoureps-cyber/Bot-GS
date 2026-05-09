@@ -499,7 +499,7 @@ class TicketControlView(discord.ui.View):
 
     @discord.ui.button(label="Fermer le ticket", style=discord.ButtonStyle.danger, emoji="🔒", custom_id="close_ticket")
     async def close_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):
-        e = discord.Embed(title="🔒 Ticket fermé", description=f"Fermé par {interaction.user.mention}. Suppression dans **5 secondes**.", color=0xED4245, timestamp=datetime.datetime.utcnow())
+        e = discord.Embed(title="🔒 Ticket fermé", description=f"Fermé par {interaction.user.mention}. Suppression dans **5 secondes**.", color=0xFFFFFF, timestamp=datetime.datetime.utcnow())
         await interaction.response.send_message(embed=e)
         await asyncio.sleep(5)
         await interaction.channel.delete(reason=f"Ticket fermé par {interaction.user}")
@@ -532,11 +532,11 @@ class TicketControlView(discord.ui.View):
 @commands.has_permissions(administrator=True)
 async def ticket(ctx):
     await ctx.message.delete()
-    e = discord.Embed(title="🎫 Support – GraphStudio", description="Pour créer un ticket, sélectionne une catégorie dans le menu ci-dessous.\n\n*Propulsé par l'équipe GraphStudio* 🔥", color=0x5865F2, timestamp=datetime.datetime.utcnow())
+    e = discord.Embed(title="🎫 Support – GraphStudio", description="Pour créer un ticket, sélectionne une catégorie dans le menu ci-dessous.\n\n*Propulsé par l'équipe GraphStudio* 🔥", color=0xFFFFFF, timestamp=datetime.datetime.utcnow())
     e.set_footer(text="GraphStudio • Support")
     if ctx.guild.icon:
         e.set_thumbnail(url=ctx.guild.icon.url)
-    await ctx.send(embed=e, view=TicketSelectView())
+    await ctx.send(embed=e, view=TicketSelectView())T
 
 @bot.event
 async def on_ready():

@@ -110,7 +110,7 @@ async def help_cmd(ctx, category: str = None):
             "emoji": "📢",
             "title": "Canaux",
             "cmds": [
-                ("+purge  [n]",              "Supprime n messages"),
+                ("+clear  [n]",              "Supprime n messages"),
                 ("+purgeuser [user] [n]",    "Supprime les msgs d'un user"),
                 ("+lock   [salon]",          "Verrouille le salon"),
                 ("+unlock [salon]",          "Déverrouille le salon"),

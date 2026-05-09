@@ -97,7 +97,7 @@ async def log_action(guild, embed):
         except Exception:
             pass
 
-def mod_embed(title, description, color=0xED4245, **fields):
+def mod_embed(title, description, color=0xFFFFFF, **fields):
     e = discord.Embed(title=title, description=description, color=color, timestamp=datetime.datetime.utcnow())
     for k, v in fields.items():
         e.add_field(name=k, value=v, inline=True)
@@ -118,7 +118,7 @@ async def unban(ctx, *, user_tag: str):
     for entry in bans:
         if str(entry.user) == user_tag:
             await ctx.guild.unban(entry.user)
-            e = mod_embed("✅ Débanni", f"**{entry.user}** a été débanni.", color=0x57F287, Modérateur=str(ctx.author))
+            e = mod_embed("✅ Débanni", f"**{entry.user}** a été débanni.", color=0xFFFFFF, Modérateur=str(ctx.author))
             return await ctx.send(embed=e)
     await ctx.send(f"❌ Utilisateur `{user_tag}` introuvable dans les bans.")
 
@@ -431,7 +431,7 @@ async def announce(ctx, *, message: str):
          discord.utils.get(ctx.guild.text_channels, name="announcements")
     if not ch:
         return await ctx.send("❌ Salon `#annonces` introuvable.")
-    e = discord.Embed(title="📢 Annonce", description=message, color=0x5865F2, timestamp=datetime.datetime.utcnow())
+    e = discord.Embed(title="📢 Annonce", description=message, color=0xFFFFFF, timestamp=datetime.datetime.utcnow())
     e.set_footer(text=f"Par {ctx.author}", icon_url=ctx.author.display_avatar.url)
     await ch.send(embed=e)
     await ctx.send(f"✅ Annonce envoyée dans {ch.mention}.")
@@ -450,16 +450,16 @@ async def on_command_error(ctx, error):
         await ctx.send(f"❌ Erreur : `{error}`", delete_after=8)
 
 TICKET_CATEGORIES = {
-    "recrutement_cm": {"label": "🔖・𝗥𝗲𝗰𝗿𝘂𝘁𝗲𝗺𝗲𝗻𝘁-𝗖𝗠", "category": "Ticket Recrutement CM", "roles": ["👑 | Fondateur", "👑 | Co-Fondateur", "💼  | Gérant Staff"], "color": 0x5865F2, "emoji": "🔖"},
-    "ticket_autre": {"label": "❓・𝗧𝗶𝗰𝗸𝗲𝘁-𝗮𝘂𝘁𝗿𝗲", "category": "Ticket Autre", "roles": ["🔧  | Modérateur", "💼  | Gérant Staff"], "color": 0xEB459E, "emoji": "❓"},
-    "recrutement_staff": {"label": "💼・𝗥𝗲𝗰𝗿𝘂𝘁𝗲𝗺𝗲𝗻𝘁-𝗦𝗧𝗔𝗙𝗙", "category": "Ticket Recrutement Staff", "roles": ["👑 | Fondateur", "👑 | Co-Fondateur", "💼  | Gérant Staff"], "color": 0xFEE75C, "emoji": "💼"},
-    "recrutement_graphique": {"label": "🎨・𝗥𝗲𝗰𝗿𝘂𝘁𝗲𝗺𝗲𝗻𝘁-𝗚𝗿𝗮𝗽𝗵𝗶𝗾𝘂𝗲", "category": "Ticket Recrutement Graphique", "roles": ["👑 | Fondateur", "👑 | Co-Fondateur", "💼  | Gérant Staff"], "color": 0x57F287, "emoji": "🎨"},
-    "ticket_shop": {"label": "🎫・𝗧𝗶𝗰𝗸𝗲𝘁-𝘀𝗵𝗼𝗽", "category": "Ticket Shop", "roles": ["🔧  | Modérateur", "💼  | Gérant Staff"], "color": 0xED4245, "emoji": "🎫"},
+    "recrutement_cm": {"label": "Recrutement-CM", "category": "Ticket Recrutement CM", "roles": ["👑 | Fondateur", "👑 | Co-Fondateur", "💼  | Gérant Staff"], "color": 0x5865F2, "emoji": "🔖"},
+    "ticket_autre": {"label": "Ticket-autre", "category": "Ticket Autre", "roles": ["🔧  | Modérateur", "💼  | Gérant Staff"], "color": 0xEB459E, "emoji": "❓"},
+    "recrutement_staff": {"label": "Recrutement-STAFF", "category": "Ticket Recrutement Staff", "roles": ["👑 | Fondateur", "👑 | Co-Fondateur", "💼  | Gérant Staff"], "color": 0xFEE75C, "emoji": "💼"},
+    "recrutement_graphique": {"label": "Recrutement-Graphique", "category": "Ticket Recrutement Graphique", "roles": ["👑 | Fondateur", "👑 | Co-Fondateur", "💼  | Gérant Staff"], "color": 0x57F287, "emoji": "🎨"},
+    "ticket_shop": {"label": "Ticket-shop", "category": "Ticket Shop", "roles": ["🔧  | Modérateur", "💼  | Gérant Staff"], "color": 0xED4245, "emoji": "🎫"},
 }
 
 class TicketSelect(discord.ui.Select):
     def __init__(self):
-        options = [discord.SelectOption(label=cfg["label"][:100], value=key, emoji=cfg["emoji"]) for key, cfg in TICKET_CATEGORIES.items()]
+        options = [discord.SelectOption(label=cfg["label"], value=key, emoji=cfg["emoji"]) for key, cfg in TICKET_CATEGORIES.items()]
         super().__init__(placeholder="Choisis une catégorie...", min_values=1, max_values=1, options=options)
 
     async def callback(self, interaction: discord.Interaction):
@@ -483,7 +483,7 @@ class TicketSelect(discord.ui.Select):
             if role:
                 overwrites[role] = discord.PermissionOverwrite(view_channel=True, send_messages=True, read_message_history=True, manage_messages=True)
         channel = await category.create_text_channel(name=f"ticket-{member.name.lower().replace(' ', '-')}", overwrites=overwrites, topic=f"Ticket de {member} | {cfg['label']}")
-        e = discord.Embed(title=f"{cfg['emoji']} Ticket – {cfg['label'][:50]}", description=f"Bonjour {member.mention} ! 👋\n\nUn membre du staff va te répondre dans les plus brefs délais.\nDécris ta demande en détail ci-dessous.\n\nPour fermer ce ticket, clique sur 🔒 ci-dessous.", color=cfg["color"], timestamp=datetime.datetime.utcnow())
+        e = discord.Embed(title=f"{cfg['emoji']} Ticket – {cfg['label']}", description=f"Bonjour {member.mention} ! 👋\n\nUn membre du staff va te répondre dans les plus brefs délais.\nDécris ta demande en détail ci-dessous.\n\nPour fermer ce ticket, clique sur 🔒 ci-dessous.", color=cfg["color"], timestamp=datetime.datetime.utcnow())
         e.set_footer(text=f"Ticket ouvert par {member}", icon_url=member.display_avatar.url)
         await channel.send(embed=e, view=TicketControlView())
         await interaction.response.send_message(f"✅ Ton ticket a été créé : {channel.mention}", ephemeral=True)
@@ -532,8 +532,8 @@ class TicketControlView(discord.ui.View):
 @commands.has_permissions(administrator=True)
 async def ticket(ctx):
     await ctx.message.delete()
-    e = discord.Embed(title="🎫 Support – Unity RP", description="Pour créer un ticket, sélectionne une catégorie dans le menu ci-dessous.\n\n**Catégories disponibles :**\n🔖 Recrutement CM\n❓ Ticket Autre\n💼 Recrutement Staff\n🎨 Recrutement Graphique\n🎫 Ticket Shop\n\n*Propulsé par l'équipe Unity RP* 🔥", color=0x5865F2, timestamp=datetime.datetime.utcnow())
-    e.set_footer(text="Unity RP • Support")
+    e = discord.Embed(title="🎫 Support – GraphStudio", description="Pour créer un ticket, sélectionne une catégorie dans le menu ci-dessous.\n\n*Propulsé par l'équipe GraphStudio* 🔥", color=0x5865F2, timestamp=datetime.datetime.utcnow())
+    e.set_footer(text="GraphStudio • Support")
     if ctx.guild.icon:
         e.set_thumbnail(url=ctx.guild.icon.url)
     await ctx.send(embed=e, view=TicketSelectView())

@@ -35,7 +35,7 @@ async def on_ready():
     await bot.change_presence(
         activity=discord.Activity(
             type=discord.ActivityType.watching,
-            name=f"{PREFIX}discord.gg/graphstudio"
+            name=f"discord.gg/graphstudio"
         )
     )
     print(f"✅  Connecté en tant que {bot.user} (ID: {bot.user.id})")

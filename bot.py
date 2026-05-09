@@ -536,7 +536,7 @@ async def ticket(ctx):
     e.set_footer(text="GraphStudio • Support")
     if ctx.guild.icon:
         e.set_thumbnail(url=ctx.guild.icon.url)
-    await ctx.send(embed=e, view=TicketSelectView())T
+    await ctx.send(embed=e, view=TicketSelectView())
 
 @bot.event
 async def on_ready():

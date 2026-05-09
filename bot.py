@@ -7,38 +7,19 @@ import os
 import re
 from collections import defaultdict
 
-# ──────────────────────────────────────────────
-#  CONFIGURATION – modifie ces valeurs
-# ──────────────────────────────────────────────
 TOKEN = os.environ.get("DISCORD_TOKEN")
-PREFIX = "+"                      # Préfixe des commandes
-MUTE_ROLE_NAME = "Muted"          # Nom du rôle muet (créé auto si absent)
-LOG_CHANNEL_NAME = "mod-logs"     # Salon de logs (optionnel)
-# ──────────────────────────────────────────────
+PREFIX = "+"
+MUTE_ROLE_NAME = "Muted"
+LOG_CHANNEL_NAME = "mod-logs"
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix=PREFIX, intents=intents, help_command=None)
 
-# Stockage en mémoire
-snipe_data   = {}   # {channel_id: {content, author, timestamp}}
-edit_snipe   = {}   # {channel_id: {before, after, author, timestamp}}
-warnings     = defaultdict(list)   # {user_id: [raisons]}
-afk_users    = {}   # {user_id: raison}
-slowmode_map = {}   # {channel_id: secondes}
-
-# ══════════════════════════════════════════════
-#  ÉVÉNEMENTS
-# ══════════════════════════════════════════════
-
-@bot.event
-async def on_ready():
-    await bot.change_presence(
-        activity=discord.Activity(
-            type=discord.ActivityType.watching,
-            name=f"discord.gg/graphstudio"
-        )
-    )
-    print(f"✅  Connecté en tant que {bot.user} (ID: {bot.user.id})")
+snipe_data   = {}
+edit_snipe   = {}
+warnings     = defaultdict(list)
+afk_users    = {}
+slowmode_map = {}
 
 @bot.event
 async def on_message_delete(message):
@@ -67,123 +48,35 @@ async def on_message_edit(before, after):
 async def on_message(message):
     if message.author.bot:
         return
-    # Détection AFK
     if message.author.id in afk_users:
         reason = afk_users.pop(message.author.id)
-        await message.channel.send(
-            f"👋 Bienvenue {message.author.mention} ! Tu n'es plus AFK (tu l'étais : *{reason}*).",
-            delete_after=8
-        )
-    # Mentions d'utilisateurs AFK
+        await message.channel.send(f"👋 Bienvenue {message.author.mention} ! Tu n'es plus AFK (tu l'étais : *{reason}*).", delete_after=8)
     for user in message.mentions:
         if user.id in afk_users:
-            await message.channel.send(
-                f"💤 **{user.display_name}** est AFK : *{afk_users[user.id]}*",
-                delete_after=8
-            )
+            await message.channel.send(f"💤 **{user.display_name}** est AFK : *{afk_users[user.id]}*", delete_after=8)
     await bot.process_commands(message)
-
-# ══════════════════════════════════════════════
-#  AIDE
-# ══════════════════════════════════════════════
 
 @bot.command(name="help")
 async def help_cmd(ctx, category: str = None):
     categories = {
-        "mod": {
-            "emoji": "🔨",
-            "title": "Modération",
-            "cmds": [
-                ("+ban   [user] [raison]",   "Bannit un membre"),
-                ("+unban [user#0000]",        "Débannit un utilisateur"),
-                ("+kick  [user] [raison]",    "Expulse un membre"),
-                ("+mute  [user] [durée] [raison]", "Mute (ex: 10m, 1h)"),
-                ("+unmute [user]",            "Démute un membre"),
-                ("+warn  [user] [raison]",    "Avertit un membre"),
-                ("+warns [user]",             "Liste les warnings"),
-                ("+clearwarns [user]",        "Efface les warnings"),
-                ("+softban [user] [raison]",  "Ban+unban (purge messages)"),
-                ("+massban [@u1 @u2 ...]",    "Bannit plusieurs membres"),
-            ]
-        },
-        "channel": {
-            "emoji": "📢",
-            "title": "Canaux",
-            "cmds": [
-                ("+clear  [n]",              "Supprime n messages"),
-                ("+purgeuser [user] [n]",    "Supprime les msgs d'un user"),
-                ("+lock   [salon]",          "Verrouille le salon"),
-                ("+unlock [salon]",          "Déverrouille le salon"),
-                ("+slowmode [secondes]",     "Définit le slowmode"),
-                ("+nuke",                    "Recrée le salon (clean total)"),
-                ("+hide",                    "Cache le salon"),
-                ("+unhide",                  "Révèle le salon"),
-            ]
-        },
-        "info": {
-            "emoji": "ℹ️",
-            "title": "Informations",
-            "cmds": [
-                ("+userinfo [user]",         "Infos sur un utilisateur"),
-                ("+serverinfo",              "Infos sur le serveur"),
-                ("+avatar  [user]",          "Avatar d'un utilisateur"),
-                ("+roleinfo [role]",         "Infos sur un rôle"),
-                ("+snipe",                   "Dernier message supprimé"),
-                ("+editsnipe",               "Dernier message édité"),
-                ("+botinfo",                 "Infos sur le bot"),
-            ]
-        },
-        "util": {
-            "emoji": "🛠️",
-            "title": "Utilitaires",
-            "cmds": [
-                ("+embed [titre] | [desc]",  "Crée un embed"),
-                ("+say   [message]",         "Bot répète un message"),
-                ("+afk   [raison]",          "Passe en mode AFK"),
-                ("+poll  [question]",        "Lance un sondage"),
-                ("+timer [secondes]",        "Lance un timer"),
-                ("+ping",                    "Latence du bot"),
-                ("+addrole [user] [role]",   "Ajoute un rôle"),
-                ("+removerole [user] [role]","Retire un rôle"),
-                ("+nick [user] [nouveau]",   "Change le pseudo"),
-                ("+announce [msg]",          "Annonce dans #annonces"),
-            ]
-        }
+        "mod": {"emoji": "🔨", "title": "Modération", "cmds": [("+ban [user] [raison]","Bannit un membre"),("+unban [user#0000]","Débannit"),("+kick [user] [raison]","Expulse"),("+mute [user] [durée] [raison]","Mute (ex: 10m, 1h)"),("+unmute [user]","Démute"),("+warn [user] [raison]","Avertit"),("+warns [user]","Liste les warnings"),("+clearwarns [user]","Efface les warnings"),("+softban [user] [raison]","Ban+unban"),("+massban [@u1 @u2]","Ban massif")]},
+        "channel": {"emoji": "📢", "title": "Canaux", "cmds": [("+purge [n]","Supprime n messages"),("+purgeuser [user] [n]","Purge msgs d'un user"),("+lock","Verrouille le salon"),("+unlock","Déverrouille"),("+slowmode [s]","Définit le slowmode"),("+nuke","Recrée le salon"),("+hide","Cache le salon"),("+unhide","Révèle le salon")]},
+        "info": {"emoji": "ℹ️", "title": "Informations", "cmds": [("+userinfo [user]","Infos utilisateur"),("+serverinfo","Infos serveur"),("+avatar [user]","Avatar"),("+roleinfo [role]","Infos rôle"),("+snipe","Dernier msg supprimé"),("+editsnipe","Dernier msg édité"),("+botinfo","Infos bot")]},
+        "util": {"emoji": "🛠️", "title": "Utilitaires", "cmds": [("+embed Titre | Desc","Crée un embed"),("+say [message]","Bot répète"),("+afk [raison]","Mode AFK"),("+poll [question]","Sondage"),("+timer [s]","Timer"),("+ping","Latence"),("+addrole [user] [role]","Ajoute un rôle"),("+removerole [user] [role]","Retire un rôle"),("+nick [user] [pseudo]","Change le pseudo"),("+announce [msg]","Annonce"),("+ticket","Panel tickets")]}
     }
-
     if category and category.lower() in categories:
         c = categories[category.lower()]
-        embed = discord.Embed(
-            title=f"{c['emoji']} Commandes – {c['title']}",
-            color=0x5865F2
-        )
+        e = discord.Embed(title=f"{c['emoji']} Commandes – {c['title']}", color=0x5865F2)
         for cmd, desc in c["cmds"]:
-            embed.add_field(name=f"`{cmd}`", value=desc, inline=False)
-        embed.set_footer(text=f"Préfixe : {PREFIX}")
-        return await ctx.send(embed=embed)
-
-    embed = discord.Embed(
-        title="📖 Aide – Bot Modération",
-        description=(
-            "Utilise `+help [catégorie]` pour voir les commandes détaillées.\n\n"
-            "**Catégories disponibles :**"
-        ),
-        color=0x5865F2,
-        timestamp=datetime.datetime.utcnow()
-    )
+            e.add_field(name=f"`{cmd}`", value=desc, inline=False)
+        e.set_footer(text=f"Préfixe : {PREFIX}")
+        return await ctx.send(embed=e)
+    e = discord.Embed(title="📖 Aide – Bot Modération", description="Utilise `+help [catégorie]`\n\n**Catégories :**", color=0x5865F2, timestamp=datetime.datetime.utcnow())
     for key, c in categories.items():
-        embed.add_field(
-            name=f"{c['emoji']} `+help {key}`",
-            value=c["title"],
-            inline=True
-        )
-    embed.set_thumbnail(url=bot.user.display_avatar.url)
-    embed.set_footer(text=f"Bot lancé par {ctx.author}", icon_url=ctx.author.display_avatar.url)
-    await ctx.send(embed=embed)
-
-# ══════════════════════════════════════════════
-#  MODÉRATION
-# ══════════════════════════════════════════════
+        e.add_field(name=f"{c['emoji']} `+help {key}`", value=c["title"], inline=True)
+    e.set_thumbnail(url=bot.user.display_avatar.url)
+    e.set_footer(text=f"Bot lancé par {ctx.author}", icon_url=ctx.author.display_avatar.url)
+    await ctx.send(embed=e)
 
 async def get_or_create_mute_role(guild):
     role = discord.utils.get(guild.roles, name=MUTE_ROLE_NAME)
@@ -210,8 +103,6 @@ def mod_embed(title, description, color=0xED4245, **fields):
         e.add_field(name=k, value=v, inline=True)
     return e
 
-# ── BAN ──────────────────────────────────────
-
 @bot.command()
 @commands.has_permissions(ban_members=True)
 async def ban(ctx, member: discord.Member, *, reason="Aucune raison fournie"):
@@ -236,7 +127,7 @@ async def unban(ctx, *, user_tag: str):
 async def softban(ctx, member: discord.Member, *, reason="Aucune raison fournie"):
     await member.ban(reason=f"Softban: {reason}", delete_message_days=7)
     await ctx.guild.unban(member)
-    e = mod_embed("🔨 Softban", f"**{member}** a été softban (messages supprimés).", Raison=reason, Modérateur=str(ctx.author))
+    e = mod_embed("🔨 Softban", f"**{member}** a été softban.", Raison=reason, Modérateur=str(ctx.author))
     await ctx.send(embed=e)
     await log_action(ctx.guild, e)
 
@@ -254,8 +145,6 @@ async def massban(ctx, members: commands.Greedy[discord.Member], *, reason="Aucu
             pass
     await ctx.send(embed=mod_embed("🔨 Massban", f"{count} membre(s) bannis.", Raison=reason, Modérateur=str(ctx.author)))
 
-# ── KICK ─────────────────────────────────────
-
 @bot.command()
 @commands.has_permissions(kick_members=True)
 async def kick(ctx, member: discord.Member, *, reason="Aucune raison fournie"):
@@ -264,10 +153,7 @@ async def kick(ctx, member: discord.Member, *, reason="Aucune raison fournie"):
     await ctx.send(embed=e)
     await log_action(ctx.guild, e)
 
-# ── MUTE ─────────────────────────────────────
-
 def parse_duration(duration_str):
-    """Convertit '10m', '1h', '30s' en secondes."""
     match = re.fullmatch(r"(\d+)([smhd])", duration_str.lower())
     if not match:
         return None
@@ -279,7 +165,6 @@ def parse_duration(duration_str):
 async def mute(ctx, member: discord.Member, duration: str = None, *, reason="Aucune raison fournie"):
     role = await get_or_create_mute_role(ctx.guild)
     await member.add_roles(role, reason=reason)
-
     dur_text = "Indéfinie"
     seconds = None
     if duration:
@@ -287,12 +172,10 @@ async def mute(ctx, member: discord.Member, duration: str = None, *, reason="Auc
         if seconds:
             dur_text = duration
         else:
-            reason = f"{duration} {reason}".strip()  # pas une durée valide
-
+            reason = f"{duration} {reason}".strip()
     e = mod_embed("🔇 Mute", f"**{member}** a été mute.", Raison=reason, Durée=dur_text, Modérateur=str(ctx.author))
     await ctx.send(embed=e)
     await log_action(ctx.guild, e)
-
     if seconds:
         await asyncio.sleep(seconds)
         if role in member.roles:
@@ -309,8 +192,6 @@ async def unmute(ctx, member: discord.Member):
         await log_action(ctx.guild, e)
     else:
         await ctx.send(f"❌ **{member}** n'est pas mute.")
-
-# ── WARN ─────────────────────────────────────
 
 @bot.command()
 @commands.has_permissions(manage_messages=True)
@@ -341,10 +222,6 @@ async def clearwarns(ctx, member: discord.Member):
     warnings[member.id] = []
     await ctx.send(embed=mod_embed("✅ Warnings effacés", f"Les avertissements de **{member}** ont été supprimés.", color=0x57F287))
 
-# ══════════════════════════════════════════════
-#  CANAUX
-# ══════════════════════════════════════════════
-
 @bot.command()
 @commands.has_permissions(manage_messages=True)
 async def purge(ctx, amount: int):
@@ -364,25 +241,25 @@ async def purgeuser(ctx, member: discord.Member, amount: int = 50):
 async def lock(ctx, channel: discord.TextChannel = None):
     channel = channel or ctx.channel
     await channel.set_permissions(ctx.guild.default_role, send_messages=False)
-    await ctx.send(embed=mod_embed("🔒 Salon verrouillé", f"{channel.mention} est maintenant verrouillé.", color=0xED4245))
+    await ctx.send(embed=mod_embed("🔒 Verrouillé", f"{channel.mention} est verrouillé.", color=0xED4245))
 
 @bot.command()
 @commands.has_permissions(manage_channels=True)
 async def unlock(ctx, channel: discord.TextChannel = None):
     channel = channel or ctx.channel
     await channel.set_permissions(ctx.guild.default_role, send_messages=True)
-    await ctx.send(embed=mod_embed("🔓 Salon déverrouillé", f"{channel.mention} est maintenant ouvert.", color=0x57F287))
+    await ctx.send(embed=mod_embed("🔓 Déverrouillé", f"{channel.mention} est ouvert.", color=0x57F287))
 
 @bot.command()
 @commands.has_permissions(manage_channels=True)
 async def slowmode(ctx, seconds: int):
     await ctx.channel.edit(slowmode_delay=seconds)
-    await ctx.send(f"⏱️ Slowmode défini à **{seconds}s** dans {ctx.channel.mention}.")
+    await ctx.send(f"⏱️ Slowmode défini à **{seconds}s**.")
 
 @bot.command()
 @commands.has_permissions(manage_channels=True)
 async def nuke(ctx):
-    msg = await ctx.send("⚠️ Es-tu sûr de vouloir recréer ce salon ? Réponds `oui` dans 10s.")
+    msg = await ctx.send("⚠️ Es-tu sûr ? Réponds `oui` dans 10s.")
     try:
         reply = await bot.wait_for("message", timeout=10, check=lambda m: m.author == ctx.author and m.channel == ctx.channel)
         if reply.content.lower() == "oui":
@@ -390,7 +267,7 @@ async def nuke(ctx):
             new_ch = await ctx.channel.clone(reason=f"Nuke par {ctx.author}")
             await ctx.channel.delete()
             await new_ch.edit(position=pos)
-            await new_ch.send("💥 Salon recréé avec succès !")
+            await new_ch.send("💥 Salon recréé !")
     except asyncio.TimeoutError:
         await msg.edit(content="❌ Nuke annulé.")
 
@@ -399,18 +276,14 @@ async def nuke(ctx):
 async def hide(ctx, channel: discord.TextChannel = None):
     channel = channel or ctx.channel
     await channel.set_permissions(ctx.guild.default_role, view_channel=False)
-    await ctx.send(f"👁️ {channel.mention} est maintenant caché.", delete_after=5)
+    await ctx.send(f"👁️ {channel.mention} caché.", delete_after=5)
 
 @bot.command()
 @commands.has_permissions(manage_channels=True)
 async def unhide(ctx, channel: discord.TextChannel = None):
     channel = channel or ctx.channel
     await channel.set_permissions(ctx.guild.default_role, view_channel=True)
-    await ctx.send(f"👁️ {channel.mention} est maintenant visible.")
-
-# ══════════════════════════════════════════════
-#  INFORMATIONS
-# ══════════════════════════════════════════════
+    await ctx.send(f"👁️ {channel.mention} visible.")
 
 @bot.command()
 async def userinfo(ctx, member: discord.Member = None):
@@ -418,11 +291,11 @@ async def userinfo(ctx, member: discord.Member = None):
     roles = [r.mention for r in member.roles[1:]] or ["Aucun"]
     e = discord.Embed(title=f"👤 {member}", color=member.color or 0x5865F2)
     e.set_thumbnail(url=member.display_avatar.url)
-    e.add_field(name="ID",            value=member.id,                                    inline=True)
-    e.add_field(name="Pseudo",        value=member.display_name,                          inline=True)
-    e.add_field(name="Bot ?",         value="Oui" if member.bot else "Non",               inline=True)
-    e.add_field(name="Compte créé",   value=member.created_at.strftime("%d/%m/%Y"),        inline=True)
-    e.add_field(name="Rejoint le",    value=member.joined_at.strftime("%d/%m/%Y"),         inline=True)
+    e.add_field(name="ID", value=member.id, inline=True)
+    e.add_field(name="Pseudo", value=member.display_name, inline=True)
+    e.add_field(name="Bot ?", value="Oui" if member.bot else "Non", inline=True)
+    e.add_field(name="Compte créé", value=member.created_at.strftime("%d/%m/%Y"), inline=True)
+    e.add_field(name="Rejoint le", value=member.joined_at.strftime("%d/%m/%Y"), inline=True)
     e.add_field(name=f"Rôles ({len(member.roles)-1})", value=" ".join(roles[-5:]), inline=False)
     await ctx.send(embed=e)
 
@@ -432,12 +305,12 @@ async def serverinfo(ctx):
     e = discord.Embed(title=f"🏰 {g.name}", color=0x5865F2)
     if g.icon:
         e.set_thumbnail(url=g.icon.url)
-    e.add_field(name="Propriétaire",  value=str(g.owner),                 inline=True)
-    e.add_field(name="Membres",       value=g.member_count,               inline=True)
-    e.add_field(name="Salons",        value=len(g.channels),              inline=True)
-    e.add_field(name="Rôles",         value=len(g.roles),                 inline=True)
-    e.add_field(name="Boosts",        value=g.premium_subscription_count, inline=True)
-    e.add_field(name="Créé le",       value=g.created_at.strftime("%d/%m/%Y"), inline=True)
+    e.add_field(name="Propriétaire", value=str(g.owner), inline=True)
+    e.add_field(name="Membres", value=g.member_count, inline=True)
+    e.add_field(name="Salons", value=len(g.channels), inline=True)
+    e.add_field(name="Rôles", value=len(g.roles), inline=True)
+    e.add_field(name="Boosts", value=g.premium_subscription_count, inline=True)
+    e.add_field(name="Créé le", value=g.created_at.strftime("%d/%m/%Y"), inline=True)
     await ctx.send(embed=e)
 
 @bot.command()
@@ -450,17 +323,17 @@ async def avatar(ctx, member: discord.Member = None):
 @bot.command()
 async def roleinfo(ctx, *, role: discord.Role):
     e = discord.Embed(title=f"🎭 {role.name}", color=role.color)
-    e.add_field(name="ID",          value=role.id,                          inline=True)
-    e.add_field(name="Membres",     value=len(role.members),                inline=True)
-    e.add_field(name="Mentionnable",value="Oui" if role.mentionable else "Non", inline=True)
-    e.add_field(name="Créé le",     value=role.created_at.strftime("%d/%m/%Y"), inline=True)
+    e.add_field(name="ID", value=role.id, inline=True)
+    e.add_field(name="Membres", value=len(role.members), inline=True)
+    e.add_field(name="Mentionnable", value="Oui" if role.mentionable else "Non", inline=True)
+    e.add_field(name="Créé le", value=role.created_at.strftime("%d/%m/%Y"), inline=True)
     await ctx.send(embed=e)
 
 @bot.command()
 async def snipe(ctx):
     data = snipe_data.get(ctx.channel.id)
     if not data:
-        return await ctx.send("❌ Aucun message récemment supprimé dans ce salon.")
+        return await ctx.send("❌ Aucun message récemment supprimé.")
     e = discord.Embed(description=data["content"], color=0xED4245, timestamp=data["timestamp"])
     e.set_author(name=data["author"], icon_url=data["avatar"])
     e.set_footer(text="Message supprimé")
@@ -470,31 +343,26 @@ async def snipe(ctx):
 async def editsnipe(ctx):
     data = edit_snipe.get(ctx.channel.id)
     if not data:
-        return await ctx.send("❌ Aucun message récemment édité dans ce salon.")
+        return await ctx.send("❌ Aucun message récemment édité.")
     e = discord.Embed(color=0xFEE75C, timestamp=data["timestamp"])
     e.set_author(name=data["author"], icon_url=data["avatar"])
     e.add_field(name="Avant", value=data["before"], inline=False)
-    e.add_field(name="Après", value=data["after"],  inline=False)
+    e.add_field(name="Après", value=data["after"], inline=False)
     e.set_footer(text="Message édité")
     await ctx.send(embed=e)
 
 @bot.command()
 async def botinfo(ctx):
     e = discord.Embed(title="🤖 Bot Info", color=0x5865F2)
-    e.add_field(name="Latence",   value=f"{round(bot.latency*1000)}ms", inline=True)
-    e.add_field(name="Serveurs",  value=len(bot.guilds),                inline=True)
-    e.add_field(name="Commandes", value=len(bot.commands),              inline=True)
+    e.add_field(name="Latence", value=f"{round(bot.latency*1000)}ms", inline=True)
+    e.add_field(name="Serveurs", value=len(bot.guilds), inline=True)
+    e.add_field(name="Commandes", value=len(bot.commands), inline=True)
     e.set_thumbnail(url=bot.user.display_avatar.url)
     await ctx.send(embed=e)
-
-# ══════════════════════════════════════════════
-#  UTILITAIRES
-# ══════════════════════════════════════════════
 
 @bot.command()
 @commands.has_permissions(manage_messages=True)
 async def embed(ctx, *, text: str):
-    """Usage : +embed Titre | Description | #couleur(optionnel)"""
     parts = [p.strip() for p in text.split("|")]
     title = parts[0] if len(parts) > 0 else "Embed"
     desc  = parts[1] if len(parts) > 1 else ""
@@ -516,7 +384,7 @@ async def say(ctx, *, message: str):
 @bot.command()
 async def afk(ctx, *, reason="AFK"):
     afk_users[ctx.author.id] = reason
-    await ctx.send(f"💤 **{ctx.author.display_name}** est maintenant AFK : *{reason}*", delete_after=10)
+    await ctx.send(f"💤 **{ctx.author.display_name}** est AFK : *{reason}*", delete_after=10)
 
 @bot.command()
 async def poll(ctx, *, question: str):
@@ -532,7 +400,7 @@ async def timer(ctx, seconds: int):
         return await ctx.send("❌ Entre 1 et 3600 secondes.")
     await ctx.send(f"⏳ Timer de **{seconds}s** lancé !")
     await asyncio.sleep(seconds)
-    await ctx.send(f"⏰ {ctx.author.mention} Ton timer de **{seconds}s** est terminé !")
+    await ctx.send(f"⏰ {ctx.author.mention} Ton timer est terminé !")
 
 @bot.command()
 async def ping(ctx):
@@ -568,10 +436,6 @@ async def announce(ctx, *, message: str):
     await ch.send(embed=e)
     await ctx.send(f"✅ Annonce envoyée dans {ch.mention}.")
 
-# ══════════════════════════════════════════════
-#  GESTION DES ERREURS
-# ══════════════════════════════════════════════
-
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.MissingPermissions):
@@ -581,12 +445,104 @@ async def on_command_error(ctx, error):
     elif isinstance(error, commands.MissingRequiredArgument):
         await ctx.send(f"❌ Argument manquant. Utilise `{PREFIX}help`.", delete_after=5)
     elif isinstance(error, commands.CommandNotFound):
-        pass  # Ignore les commandes inconnues
+        pass
     else:
         await ctx.send(f"❌ Erreur : `{error}`", delete_after=8)
 
-# ══════════════════════════════════════════════
-#  LANCEMENT
-# ══════════════════════════════════════════════
+TICKET_CATEGORIES = {
+    "recrutement_cm": {"label": "🔖・𝗥𝗲𝗰𝗿𝘂𝘁𝗲𝗺𝗲𝗻𝘁-𝗖𝗠", "category": "Ticket Recrutement CM", "roles": ["👑 | Fondateur", "👑 | Co-Fondateur", "💼  | Gérant Staff"], "color": 0x5865F2, "emoji": "🔖"},
+    "ticket_autre": {"label": "❓・𝗧𝗶𝗰𝗸𝗲𝘁-𝗮𝘂𝘁𝗿𝗲", "category": "Ticket Autre", "roles": ["🔧  | Modérateur", "💼  | Gérant Staff"], "color": 0xEB459E, "emoji": "❓"},
+    "recrutement_staff": {"label": "💼・𝗥𝗲𝗰𝗿𝘂𝘁𝗲𝗺𝗲𝗻𝘁-𝗦𝗧𝗔𝗙𝗙", "category": "Ticket Recrutement Staff", "roles": ["👑 | Fondateur", "👑 | Co-Fondateur", "💼  | Gérant Staff"], "color": 0xFEE75C, "emoji": "💼"},
+    "recrutement_graphique": {"label": "🎨・𝗥𝗲𝗰𝗿𝘂𝘁𝗲𝗺𝗲𝗻𝘁-𝗚𝗿𝗮𝗽𝗵𝗶𝗾𝘂𝗲", "category": "Ticket Recrutement Graphique", "roles": ["👑 | Fondateur", "👑 | Co-Fondateur", "💼  | Gérant Staff"], "color": 0x57F287, "emoji": "🎨"},
+    "ticket_shop": {"label": "🎫・𝗧𝗶𝗰𝗸𝗲𝘁-𝘀𝗵𝗼𝗽", "category": "Ticket Shop", "roles": ["🔧  | Modérateur", "💼  | Gérant Staff"], "color": 0xED4245, "emoji": "🎫"},
+}
+
+class TicketSelect(discord.ui.Select):
+    def __init__(self):
+        options = [discord.SelectOption(label=cfg["label"][:100], value=key, emoji=cfg["emoji"]) for key, cfg in TICKET_CATEGORIES.items()]
+        super().__init__(placeholder="Choisis une catégorie...", min_values=1, max_values=1, options=options)
+
+    async def callback(self, interaction: discord.Interaction):
+        key = self.values[0]
+        cfg = TICKET_CATEGORIES[key]
+        guild = interaction.guild
+        member = interaction.user
+        existing = discord.utils.get(guild.text_channels, name=f"ticket-{member.name.lower().replace(' ', '-')}")
+        if existing:
+            return await interaction.response.send_message(f"❌ Tu as déjà un ticket ouvert : {existing.mention}", ephemeral=True)
+        category = discord.utils.get(guild.categories, name=cfg["category"])
+        if not category:
+            category = await guild.create_category(cfg["category"])
+        overwrites = {
+            guild.default_role: discord.PermissionOverwrite(view_channel=False),
+            member: discord.PermissionOverwrite(view_channel=True, send_messages=True, read_message_history=True),
+            guild.me: discord.PermissionOverwrite(view_channel=True, send_messages=True, manage_channels=True),
+        }
+        for role_name in cfg["roles"]:
+            role = discord.utils.get(guild.roles, name=role_name)
+            if role:
+                overwrites[role] = discord.PermissionOverwrite(view_channel=True, send_messages=True, read_message_history=True, manage_messages=True)
+        channel = await category.create_text_channel(name=f"ticket-{member.name.lower().replace(' ', '-')}", overwrites=overwrites, topic=f"Ticket de {member} | {cfg['label']}")
+        e = discord.Embed(title=f"{cfg['emoji']} Ticket – {cfg['label'][:50]}", description=f"Bonjour {member.mention} ! 👋\n\nUn membre du staff va te répondre dans les plus brefs délais.\nDécris ta demande en détail ci-dessous.\n\nPour fermer ce ticket, clique sur 🔒 ci-dessous.", color=cfg["color"], timestamp=datetime.datetime.utcnow())
+        e.set_footer(text=f"Ticket ouvert par {member}", icon_url=member.display_avatar.url)
+        await channel.send(embed=e, view=TicketControlView())
+        await interaction.response.send_message(f"✅ Ton ticket a été créé : {channel.mention}", ephemeral=True)
+
+class TicketSelectView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+        self.add_item(TicketSelect())
+
+class TicketControlView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @discord.ui.button(label="Fermer le ticket", style=discord.ButtonStyle.danger, emoji="🔒", custom_id="close_ticket")
+    async def close_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):
+        e = discord.Embed(title="🔒 Ticket fermé", description=f"Fermé par {interaction.user.mention}. Suppression dans **5 secondes**.", color=0xED4245, timestamp=datetime.datetime.utcnow())
+        await interaction.response.send_message(embed=e)
+        await asyncio.sleep(5)
+        await interaction.channel.delete(reason=f"Ticket fermé par {interaction.user}")
+
+    @discord.ui.button(label="Sauvegarder", style=discord.ButtonStyle.secondary, emoji="💾", custom_id="save_ticket")
+    async def save_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):
+        import io
+        messages = []
+        async for msg in interaction.channel.history(limit=200, oldest_first=True):
+            if not msg.author.bot:
+                messages.append(f"[{msg.created_at.strftime('%H:%M')}] {msg.author}: {msg.content}")
+        transcript = "\n".join(messages) if messages else "Aucun message."
+        file = discord.File(fp=io.StringIO(transcript), filename=f"transcript-{interaction.channel.name}.txt")
+        await interaction.user.send(f"📄 Transcript du ticket **{interaction.channel.name}** :", file=file)
+        await interaction.response.send_message("✅ Transcript envoyé en MP !", ephemeral=True)
+
+    @discord.ui.button(label="Ajouter un membre", style=discord.ButtonStyle.success, emoji="➕", custom_id="add_member")
+    async def add_member(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_message("Mentionne le membre à ajouter (ex: @pseudo) :", ephemeral=True)
+        try:
+            msg = await bot.wait_for("message", timeout=30, check=lambda m: m.author == interaction.user and m.channel == interaction.channel and m.mentions)
+            for member in msg.mentions:
+                await interaction.channel.set_permissions(member, view_channel=True, send_messages=True, read_message_history=True)
+            await interaction.channel.send(f"✅ {', '.join(m.mention for m in msg.mentions)} ajouté(s) au ticket.")
+            await msg.delete()
+        except asyncio.TimeoutError:
+            pass
+
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def ticket(ctx):
+    await ctx.message.delete()
+    e = discord.Embed(title="🎫 Support – Unity RP", description="Pour créer un ticket, sélectionne une catégorie dans le menu ci-dessous.\n\n**Catégories disponibles :**\n🔖 Recrutement CM\n❓ Ticket Autre\n💼 Recrutement Staff\n🎨 Recrutement Graphique\n🎫 Ticket Shop\n\n*Propulsé par l'équipe Unity RP* 🔥", color=0x5865F2, timestamp=datetime.datetime.utcnow())
+    e.set_footer(text="Unity RP • Support")
+    if ctx.guild.icon:
+        e.set_thumbnail(url=ctx.guild.icon.url)
+    await ctx.send(embed=e, view=TicketSelectView())
+
+@bot.event
+async def on_ready():
+    bot.add_view(TicketControlView())
+    bot.add_view(TicketSelectView())
+    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=f"{PREFIX}help | Modération"))
+    print(f"✅ Connecté en tant que {bot.user} (ID: {bot.user.id})")
 
 bot.run(TOKEN)

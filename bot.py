@@ -523,8 +523,12 @@ class TicketControlView(discord.ui.View):
         e = discord.Embed(title="🔒 Ticket fermé", description=f"Ce ticket a été fermé par {interaction.user.mention}.\nIl est maintenant en lecture seule.", color=0xFFFFFF, timestamp=datetime.datetime.utcnow())
         await interaction.response.send_message(embed=e)
 
-    @discord.ui.button(label="Supprimer", style=discord.ButtonStyle.danger, emoji="🗑️", custom_id="delete_ticket")
+   @discord.ui.button(label="Supprimer", style=discord.ButtonStyle.danger, emoji="🗑️", custom_id="delete_ticket")
     async def delete_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):
+        roles_autorises = ["👑 | Fondateur", "👑 | Co-Fondateur"]
+        user_roles = [r.name for r in interaction.user.roles]
+        if not any(r in user_roles for r in roles_autorises):
+            return await interaction.response.send_message("❌ Seuls les Fondateurs peuvent supprimer définitivement un ticket.", ephemeral=True)
         e = discord.Embed(title="🗑️ Suppression", description=f"Ticket supprimé par {interaction.user.mention}. Suppression dans **5 secondes**.", color=0xFFFFFF, timestamp=datetime.datetime.utcnow())
         await interaction.response.send_message(embed=e)
         await asyncio.sleep(5)

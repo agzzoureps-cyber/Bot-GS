@@ -58,7 +58,7 @@ async def on_message(message):
 async def help_cmd(ctx, category: str = None):
     categories = {
         "mod": {"emoji": "🔨", "title": "Modération", "cmds": [("+ban [user] [raison]","Bannit"),("+unban [user#0000]","Débannit"),("+kick [user] [raison]","Expulse"),("+mute [user] [durée] [raison]","Mute"),("+unmute [user]","Démute"),("+warn [user] [raison]","Avertit"),("+warns [user]","Liste warnings"),("+clearwarns [user]","Efface warnings"),("+softban [user]","Ban+unban"),("+massban [@u1 @u2]","Ban massif")]},
-        "channel": {"emoji": "📢", "title": "Canaux", "cmds": [("+clear [n]","Supprime n messages"),("+purgeuser [user]","Purge msgs d'un user"),("+lock","Verrouille"),("+unlock","Déverrouille"),("+slowmode [s]","Slowmode"),("+nuke","Recrée le salon"),("+hide","Cache"),("+unhide","Révèle")]},
+        "channel": {"emoji": "📢", "title": "Canaux", "cmds": [("+clear [n]","Supprime n messages"),("+purgeuser [user]","Purge msgs d'un user"),("+lock","Verrouille"),("+unlock","Déverrouille"),("+slowmode [s]","Slowmode"),("+nuke","Recrée le salon"),("+hide","Cache"),("+unhide","Révèle"),("+renamechannel [nom]","Renomme le salon")]},
         "info": {"emoji": "ℹ️", "title": "Informations", "cmds": [("+userinfo [user]","Infos utilisateur"),("+serverinfo","Infos serveur"),("+avatar [user]","Avatar"),("+roleinfo [role]","Infos rôle"),("+snipe","Dernier msg supprimé"),("+editsnipe","Dernier msg édité"),("+botinfo","Infos bot")]},
         "util": {"emoji": "🛠️", "title": "Utilitaires", "cmds": [("+embed Titre | Desc","Crée un embed"),("+say [message]","Bot répète"),("+afk [raison]","Mode AFK"),("+poll [question]","Sondage"),("+timer [s]","Timer"),("+ping","Latence"),("+addrole [user] [role]","Ajoute rôle"),("+removerole [user] [role]","Retire rôle"),("+rename [user] [pseudo]","Change le pseudo"),("+announce [msg]","Annonce"),("+ticket","Panel tickets")]}
     }
@@ -473,14 +473,7 @@ class TicketSelect(discord.ui.Select):
         guild = interaction.guild
         member = interaction.user
         existing = discord.utils.get(guild.text_channels, name=f"ticket-{member.name.lower().replace(' ', '-')}")
-        if existing = discord.utils.get(guild.text_channels, name=f"ticket-{member.name.lower().replace(' ', '-')}")
-        if not existing:
-            existing = discord.utils.get(guild.text_channels, name=f"fermé-ticket-{member.name.lower().replace(' ', '-')}")
-        if existing and "fermé" not in existing.name:
-            return await interaction.response.send_message(f"❌ Tu as déjà un ticket ouvert : {existing.mention}", ephemeral=True)
-        if not existing:
-            existing = discord.utils.get(guild.text_channels, name=f"fermé-ticket-{member.name.lower().replace(' ', '-')}")
-        if existing and "fermé" not in existing.name:
+        if existing:
             return await interaction.response.send_message(f"❌ Tu as déjà un ticket ouvert : {existing.mention}", ephemeral=True)
         category = discord.utils.get(guild.categories, name=cfg["category"])
         if not category:
@@ -512,7 +505,7 @@ class TicketControlView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
- @discord.ui.button(label="Fermer le ticket", style=discord.ButtonStyle.danger, emoji="🔒", custom_id="close_ticket")
+    @discord.ui.button(label="Fermer le ticket", style=discord.ButtonStyle.danger, emoji="🔒", custom_id="close_ticket")
     async def close_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):
         guild = interaction.guild
         channel = interaction.channel
@@ -524,10 +517,10 @@ class TicketControlView(discord.ui.View):
                 await channel.set_permissions(overwrite_target, view_channel=False, send_messages=False)
         await channel.set_permissions(guild.default_role, view_channel=False, send_messages=False)
         await channel.edit(category=closed_category, name=f"fermé-{channel.name}")
-        e = discord.Embed(title="🔒 Ticket fermé", description=f"Ce ticket a été fermé par {interaction.user.mention}.\nIl est maintenant en lecture seule.", color=0xFFFFFF, timestamp=datetime.datetime.utcnow())
+        e = discord.Embed(title="🔒 Ticket fermé", description=f"Ce ticket a été fermé par {interaction.user.mention}.\nIl est maintenant archivé.", color=0xFFFFFF, timestamp=datetime.datetime.utcnow())
         await interaction.response.send_message(embed=e)
 
-   @discord.ui.button(label="Supprimer", style=discord.ButtonStyle.danger, emoji="🗑️", custom_id="delete_ticket")
+    @discord.ui.button(label="Supprimer", style=discord.ButtonStyle.danger, emoji="🗑️", custom_id="delete_ticket")
     async def delete_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):
         roles_autorises = ["👑 | Fondateur", "👑 | Co-Fondateur"]
         user_roles = [r.name for r in interaction.user.roles]
@@ -576,7 +569,7 @@ async def ticket(ctx):
 async def on_ready():
     bot.add_view(TicketControlView())
     bot.add_view(TicketSelectView())
-await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="discord.gg/graphstudio"))
+    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="discord.gg/graphstudio"))
     print(f"✅ Connecté en tant que {bot.user} (ID: {bot.user.id})")
 
 bot.run(TOKEN)

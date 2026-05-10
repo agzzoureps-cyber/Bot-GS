@@ -458,7 +458,7 @@ TICKET_CATEGORIES = {
 class TicketSelect(discord.ui.Select):
     def __init__(self):
         options = [discord.SelectOption(label=cfg["label"], value=key, emoji=cfg["emoji"]) for key, cfg in TICKET_CATEGORIES.items()]
-        super().__init__(placeholder="Choisis une catégorie...", min_values=1, max_values=1, options=options)
+        super().__init__(placeholder="Choisis une catégorie...", min_values=1, max_values=1, options=options, custom_id="ticket_select")
 
     async def callback(self, interaction: discord.Interaction):
         key = self.values[0]
@@ -490,6 +490,9 @@ class TicketSelectView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
         self.add_item(TicketSelect())
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        return True
 
 class TicketControlView(discord.ui.View):
     def __init__(self):

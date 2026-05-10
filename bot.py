@@ -58,7 +58,7 @@ async def on_message(message):
 async def help_cmd(ctx, category: str = None):
     categories = {
         "mod": {"emoji": "🔨", "title": "Modération", "cmds": [("+ban [user] [raison]","Bannit"),("+unban [user#0000]","Débannit"),("+kick [user] [raison]","Expulse"),("+mute [user] [durée] [raison]","Mute"),("+unmute [user]","Démute"),("+warn [user] [raison]","Avertit"),("+warns [user]","Liste warnings"),("+clearwarns [user]","Efface warnings"),("+softban [user]","Ban+unban"),("+massban [@u1 @u2]","Ban massif")]},
-        "channel": {"emoji": "📢", "title": "Canaux", "cmds": [("+purge [n]","Supprime n messages"),("+purgeuser [user]","Purge msgs d'un user"),("+lock","Verrouille"),("+unlock","Déverrouille"),("+slowmode [s]","Slowmode"),("+nuke","Recrée le salon"),("+hide","Cache"),("+unhide","Révèle")]},
+        "channel": {"emoji": "📢", "title": "Canaux", "cmds": [("+clear [n]","Supprime n messages"),("+purgeuser [user]","Purge msgs d'un user"),("+lock","Verrouille"),("+unlock","Déverrouille"),("+slowmode [s]","Slowmode"),("+nuke","Recrée le salon"),("+hide","Cache"),("+unhide","Révèle")]},
         "info": {"emoji": "ℹ️", "title": "Informations", "cmds": [("+userinfo [user]","Infos utilisateur"),("+serverinfo","Infos serveur"),("+avatar [user]","Avatar"),("+roleinfo [role]","Infos rôle"),("+snipe","Dernier msg supprimé"),("+editsnipe","Dernier msg édité"),("+botinfo","Infos bot")]},
         "util": {"emoji": "🛠️", "title": "Utilitaires", "cmds": [("+embed Titre | Desc","Crée un embed"),("+say [message]","Bot répète"),("+afk [raison]","Mode AFK"),("+poll [question]","Sondage"),("+timer [s]","Timer"),("+ping","Latence"),("+addrole [user] [role]","Ajoute rôle"),("+removerole [user] [role]","Retire rôle"),("+rename [user] [pseudo]","Change le pseudo"),("+announce [msg]","Annonce"),("+ticket","Panel tickets")]}
     }
@@ -222,7 +222,7 @@ async def clearwarns(ctx, member: discord.Member):
 
 @bot.command()
 @commands.has_permissions(manage_messages=True)
-async def purge(ctx, amount: int):
+async def clear(ctx, amount: int):
     if amount < 1 or amount > 500:
         return await ctx.send("❌ Entre 1 et 500 messages.")
     deleted = await ctx.channel.purge(limit=amount + 1)
@@ -421,6 +421,13 @@ async def removerole(ctx, member: discord.Member, *, role: discord.Role):
 async def rename(ctx, member: discord.Member, *, nickname: str):
     await member.edit(nick=nickname)
     await ctx.send(embed=mod_embed("✅ Pseudo changé", f"Le pseudo de **{member}** a été changé en **{nickname}**."))
+
+@bot.command()
+@commands.has_permissions(manage_channels=True)
+async def renamechannel(ctx, *, new_name: str):
+    old_name = ctx.channel.name
+    await ctx.channel.edit(name=new_name)
+    await ctx.send(embed=mod_embed("✅ Salon renommé", f"**#{old_name}** → **#{new_name}**"))
 
 @bot.command()
 @commands.has_permissions(manage_messages=True)

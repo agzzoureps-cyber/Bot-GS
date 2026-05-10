@@ -473,7 +473,10 @@ class TicketSelect(discord.ui.Select):
         guild = interaction.guild
         member = interaction.user
         existing = discord.utils.get(guild.text_channels, name=f"ticket-{member.name.lower().replace(' ', '-')}")
-        if existing:
+        if existing = discord.utils.get(guild.text_channels, name=f"ticket-{member.name.lower().replace(' ', '-')}")
+        if not existing:
+            existing = discord.utils.get(guild.text_channels, name=f"fermé-ticket-{member.name.lower().replace(' ', '-')}")
+        if existing and "fermé" not in existing.name:
             return await interaction.response.send_message(f"❌ Tu as déjà un ticket ouvert : {existing.mention}", ephemeral=True)
         category = discord.utils.get(guild.categories, name=cfg["category"])
         if not category:
@@ -505,17 +508,17 @@ class TicketControlView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(label="Fermer le ticket", style=discord.ButtonStyle.danger, emoji="🔒", custom_id="close_ticket")
+ @discord.ui.button(label="Fermer le ticket", style=discord.ButtonStyle.danger, emoji="🔒", custom_id="close_ticket")
     async def close_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):
         guild = interaction.guild
         channel = interaction.channel
         closed_category = discord.utils.get(guild.categories, name="Ticket Fermé")
         if not closed_category:
             closed_category = await guild.create_category("Ticket Fermé")
-        await channel.set_permissions(guild.default_role, view_channel=False, send_messages=False)
         for overwrite_target in list(channel.overwrites):
             if isinstance(overwrite_target, discord.Member) and overwrite_target != guild.me:
-                await channel.set_permissions(overwrite_target, view_channel=True, send_messages=False, read_message_history=True)
+                await channel.set_permissions(overwrite_target, view_channel=False, send_messages=False)
+        await channel.set_permissions(guild.default_role, view_channel=False, send_messages=False)
         await channel.edit(category=closed_category, name=f"fermé-{channel.name}")
         e = discord.Embed(title="🔒 Ticket fermé", description=f"Ce ticket a été fermé par {interaction.user.mention}.\nIl est maintenant en lecture seule.", color=0xFFFFFF, timestamp=datetime.datetime.utcnow())
         await interaction.response.send_message(embed=e)

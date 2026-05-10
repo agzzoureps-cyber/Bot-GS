@@ -568,7 +568,7 @@ async def ticket(ctx):
 async def on_ready():
     bot.add_view(TicketControlView())
     bot.add_view(TicketSelectView())
-    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=f"{PREFIX}help | Modération"))
+await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="discord.gg/graphstudio"))
     print(f"✅ Connecté en tant que {bot.user} (ID: {bot.user.id})")
 
 bot.run(TOKEN)

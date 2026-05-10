@@ -478,6 +478,10 @@ class TicketSelect(discord.ui.Select):
             existing = discord.utils.get(guild.text_channels, name=f"fermé-ticket-{member.name.lower().replace(' ', '-')}")
         if existing and "fermé" not in existing.name:
             return await interaction.response.send_message(f"❌ Tu as déjà un ticket ouvert : {existing.mention}", ephemeral=True)
+        if not existing:
+            existing = discord.utils.get(guild.text_channels, name=f"fermé-ticket-{member.name.lower().replace(' ', '-')}")
+        if existing and "fermé" not in existing.name:
+            return await interaction.response.send_message(f"❌ Tu as déjà un ticket ouvert : {existing.mention}", ephemeral=True)
         category = discord.utils.get(guild.categories, name=cfg["category"])
         if not category:
             category = await guild.create_category(cfg["category"])

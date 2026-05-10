@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 import asyncio
 import datetime
-import json
 import os
 import re
 from collections import defaultdict
@@ -15,20 +14,19 @@ LOG_CHANNEL_NAME = "mod-logs"
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix=PREFIX, intents=intents, help_command=None)
 
-snipe_data   = {}
-edit_snipe   = {}
-warnings     = defaultdict(list)
-afk_users    = {}
-slowmode_map = {}
+snipe_data = {}
+edit_snipe = {}
+warnings = defaultdict(list)
+afk_users = {}
 
 @bot.event
 async def on_message_delete(message):
     if message.author.bot:
         return
     snipe_data[message.channel.id] = {
-        "content":   message.content or "[Aucun texte]",
-        "author":    str(message.author),
-        "avatar":    str(message.author.display_avatar.url),
+        "content": message.content or "[Aucun texte]",
+        "author": str(message.author),
+        "avatar": str(message.author.display_avatar.url),
         "timestamp": datetime.datetime.utcnow()
     }
 
@@ -37,10 +35,10 @@ async def on_message_edit(before, after):
     if before.author.bot or before.content == after.content:
         return
     edit_snipe[before.channel.id] = {
-        "before":    before.content or "[Aucun texte]",
-        "after":     after.content  or "[Aucun texte]",
-        "author":    str(before.author),
-        "avatar":    str(before.author.display_avatar.url),
+        "before": before.content or "[Aucun texte]",
+        "after": after.content or "[Aucun texte]",
+        "author": str(before.author),
+        "avatar": str(before.author.display_avatar.url),
         "timestamp": datetime.datetime.utcnow()
     }
 
@@ -59,19 +57,19 @@ async def on_message(message):
 @bot.command(name="help")
 async def help_cmd(ctx, category: str = None):
     categories = {
-        "mod": {"emoji": "🔨", "title": "Modération", "cmds": [("+ban [user] [raison]","Bannit un membre"),("+unban [user#0000]","Débannit"),("+kick [user] [raison]","Expulse"),("+mute [user] [durée] [raison]","Mute (ex: 10m, 1h)"),("+unmute [user]","Démute"),("+warn [user] [raison]","Avertit"),("+warns [user]","Liste les warnings"),("+clearwarns [user]","Efface les warnings"),("+softban [user] [raison]","Ban+unban"),("+massban [@u1 @u2]","Ban massif")]},
-        "channel": {"emoji": "📢", "title": "Canaux", "cmds": [("+clear [n]","Supprime n messages"),("+purgeuser [user] [n]","Purge msgs d'un user"),("+lock","Verrouille le salon"),("+unlock","Déverrouille"),("+slowmode [s]","Définit le slowmode"),("+nuke","Recrée le salon"),("+hide","Cache le salon"),("+unhide","Révèle le salon")]},
+        "mod": {"emoji": "🔨", "title": "Modération", "cmds": [("+ban [user] [raison]","Bannit"),("+unban [user#0000]","Débannit"),("+kick [user] [raison]","Expulse"),("+mute [user] [durée] [raison]","Mute"),("+unmute [user]","Démute"),("+warn [user] [raison]","Avertit"),("+warns [user]","Liste warnings"),("+clearwarns [user]","Efface warnings"),("+softban [user]","Ban+unban"),("+massban [@u1 @u2]","Ban massif")]},
+        "channel": {"emoji": "📢", "title": "Canaux", "cmds": [("+purge [n]","Supprime n messages"),("+purgeuser [user]","Purge msgs d'un user"),("+lock","Verrouille"),("+unlock","Déverrouille"),("+slowmode [s]","Slowmode"),("+nuke","Recrée le salon"),("+hide","Cache"),("+unhide","Révèle")]},
         "info": {"emoji": "ℹ️", "title": "Informations", "cmds": [("+userinfo [user]","Infos utilisateur"),("+serverinfo","Infos serveur"),("+avatar [user]","Avatar"),("+roleinfo [role]","Infos rôle"),("+snipe","Dernier msg supprimé"),("+editsnipe","Dernier msg édité"),("+botinfo","Infos bot")]},
-        "util": {"emoji": "🛠️", "title": "Utilitaires", "cmds": [("+embed Titre | Desc","Crée un embed"),("+say [message]","Bot répète"),("+afk [raison]","Mode AFK"),("+poll [question]","Sondage"),("+timer [s]","Timer"),("+ping","Latence"),("+addrole [user] [role]","Ajoute un rôle"),("+removerole [user] [role]","Retire un rôle"),("+nick [user] [pseudo]","Change le pseudo"),("+announce [msg]","Annonce"),("+ticket","Panel tickets")]}
+        "util": {"emoji": "🛠️", "title": "Utilitaires", "cmds": [("+embed Titre | Desc","Crée un embed"),("+say [message]","Bot répète"),("+afk [raison]","Mode AFK"),("+poll [question]","Sondage"),("+timer [s]","Timer"),("+ping","Latence"),("+addrole [user] [role]","Ajoute rôle"),("+removerole [user] [role]","Retire rôle"),("+rename [user] [pseudo]","Change le pseudo"),("+announce [msg]","Annonce"),("+ticket","Panel tickets")]}
     }
     if category and category.lower() in categories:
         c = categories[category.lower()]
-        e = discord.Embed(title=f"{c['emoji']} Commandes – {c['title']}", color=0x5865F2)
+        e = discord.Embed(title=f"{c['emoji']} Commandes – {c['title']}", color=0xFFFFFF)
         for cmd, desc in c["cmds"]:
             e.add_field(name=f"`{cmd}`", value=desc, inline=False)
         e.set_footer(text=f"Préfixe : {PREFIX}")
         return await ctx.send(embed=e)
-    e = discord.Embed(title="📖 Aide – Bot Modération", description="Utilise `+help [catégorie]`\n\n**Catégories :**", color=0x5865F2, timestamp=datetime.datetime.utcnow())
+    e = discord.Embed(title="📖 Aide – Bot Modération", description="Utilise `+help [catégorie]`\n\n**Catégories :**", color=0xFFFFFF, timestamp=datetime.datetime.utcnow())
     for key, c in categories.items():
         e.add_field(name=f"{c['emoji']} `+help {key}`", value=c["title"], inline=True)
     e.set_thumbnail(url=bot.user.display_avatar.url)
@@ -118,7 +116,7 @@ async def unban(ctx, *, user_tag: str):
     for entry in bans:
         if str(entry.user) == user_tag:
             await ctx.guild.unban(entry.user)
-            e = mod_embed("✅ Débanni", f"**{entry.user}** a été débanni.", color=0xFFFFFF, Modérateur=str(ctx.author))
+            e = mod_embed("✅ Débanni", f"**{entry.user}** a été débanni.", Modérateur=str(ctx.author))
             return await ctx.send(embed=e)
     await ctx.send(f"❌ Utilisateur `{user_tag}` introuvable dans les bans.")
 
@@ -187,7 +185,7 @@ async def unmute(ctx, member: discord.Member):
     role = await get_or_create_mute_role(ctx.guild)
     if role in member.roles:
         await member.remove_roles(role)
-        e = mod_embed("🔊 Unmute", f"**{member}** a été unmute.", color=0x57F287, Modérateur=str(ctx.author))
+        e = mod_embed("🔊 Unmute", f"**{member}** a été unmute.", Modérateur=str(ctx.author))
         await ctx.send(embed=e)
         await log_action(ctx.guild, e)
     else:
@@ -211,7 +209,7 @@ async def warns(ctx, member: discord.Member):
     w = warnings.get(member.id, [])
     if not w:
         return await ctx.send(f"✅ **{member}** n'a aucun avertissement.")
-    e = discord.Embed(title=f"⚠️ Avertissements de {member}", color=0xFEE75C)
+    e = discord.Embed(title=f"⚠️ Avertissements de {member}", color=0xFFFFFF)
     for i, entry in enumerate(w, 1):
         e.add_field(name=f"#{i} – {entry['date']}", value=f"**Raison :** {entry['raison']}\n**Par :** {entry['par']}", inline=False)
     await ctx.send(embed=e)
@@ -220,7 +218,7 @@ async def warns(ctx, member: discord.Member):
 @commands.has_permissions(manage_messages=True)
 async def clearwarns(ctx, member: discord.Member):
     warnings[member.id] = []
-    await ctx.send(embed=mod_embed("✅ Warnings effacés", f"Les avertissements de **{member}** ont été supprimés.", color=0x57F287))
+    await ctx.send(embed=mod_embed("✅ Warnings effacés", f"Les avertissements de **{member}** ont été supprimés."))
 
 @bot.command()
 @commands.has_permissions(manage_messages=True)
@@ -241,14 +239,14 @@ async def purgeuser(ctx, member: discord.Member, amount: int = 50):
 async def lock(ctx, channel: discord.TextChannel = None):
     channel = channel or ctx.channel
     await channel.set_permissions(ctx.guild.default_role, send_messages=False)
-    await ctx.send(embed=mod_embed("🔒 Verrouillé", f"{channel.mention} est verrouillé.", color=0xED4245))
+    await ctx.send(embed=mod_embed("🔒 Verrouillé", f"{channel.mention} est verrouillé."))
 
 @bot.command()
 @commands.has_permissions(manage_channels=True)
 async def unlock(ctx, channel: discord.TextChannel = None):
     channel = channel or ctx.channel
     await channel.set_permissions(ctx.guild.default_role, send_messages=True)
-    await ctx.send(embed=mod_embed("🔓 Déverrouillé", f"{channel.mention} est ouvert.", color=0x57F287))
+    await ctx.send(embed=mod_embed("🔓 Déverrouillé", f"{channel.mention} est ouvert."))
 
 @bot.command()
 @commands.has_permissions(manage_channels=True)
@@ -289,7 +287,7 @@ async def unhide(ctx, channel: discord.TextChannel = None):
 async def userinfo(ctx, member: discord.Member = None):
     member = member or ctx.author
     roles = [r.mention for r in member.roles[1:]] or ["Aucun"]
-    e = discord.Embed(title=f"👤 {member}", color=member.color or 0x5865F2)
+    e = discord.Embed(title=f"👤 {member}", color=0xFFFFFF)
     e.set_thumbnail(url=member.display_avatar.url)
     e.add_field(name="ID", value=member.id, inline=True)
     e.add_field(name="Pseudo", value=member.display_name, inline=True)
@@ -302,7 +300,7 @@ async def userinfo(ctx, member: discord.Member = None):
 @bot.command()
 async def serverinfo(ctx):
     g = ctx.guild
-    e = discord.Embed(title=f"🏰 {g.name}", color=0x5865F2)
+    e = discord.Embed(title=f"🏰 {g.name}", color=0xFFFFFF)
     if g.icon:
         e.set_thumbnail(url=g.icon.url)
     e.add_field(name="Propriétaire", value=str(g.owner), inline=True)
@@ -316,13 +314,13 @@ async def serverinfo(ctx):
 @bot.command()
 async def avatar(ctx, member: discord.Member = None):
     member = member or ctx.author
-    e = discord.Embed(title=f"🖼️ Avatar de {member}", color=0x5865F2)
+    e = discord.Embed(title=f"🖼️ Avatar de {member}", color=0xFFFFFF)
     e.set_image(url=member.display_avatar.url)
     await ctx.send(embed=e)
 
 @bot.command()
 async def roleinfo(ctx, *, role: discord.Role):
-    e = discord.Embed(title=f"🎭 {role.name}", color=role.color)
+    e = discord.Embed(title=f"🎭 {role.name}", color=0xFFFFFF)
     e.add_field(name="ID", value=role.id, inline=True)
     e.add_field(name="Membres", value=len(role.members), inline=True)
     e.add_field(name="Mentionnable", value="Oui" if role.mentionable else "Non", inline=True)
@@ -334,7 +332,7 @@ async def snipe(ctx):
     data = snipe_data.get(ctx.channel.id)
     if not data:
         return await ctx.send("❌ Aucun message récemment supprimé.")
-    e = discord.Embed(description=data["content"], color=0xED4245, timestamp=data["timestamp"])
+    e = discord.Embed(description=data["content"], color=0xFFFFFF, timestamp=data["timestamp"])
     e.set_author(name=data["author"], icon_url=data["avatar"])
     e.set_footer(text="Message supprimé")
     await ctx.send(embed=e)
@@ -344,7 +342,7 @@ async def editsnipe(ctx):
     data = edit_snipe.get(ctx.channel.id)
     if not data:
         return await ctx.send("❌ Aucun message récemment édité.")
-    e = discord.Embed(color=0xFEE75C, timestamp=data["timestamp"])
+    e = discord.Embed(color=0xFFFFFF, timestamp=data["timestamp"])
     e.set_author(name=data["author"], icon_url=data["avatar"])
     e.add_field(name="Avant", value=data["before"], inline=False)
     e.add_field(name="Après", value=data["after"], inline=False)
@@ -353,7 +351,7 @@ async def editsnipe(ctx):
 
 @bot.command()
 async def botinfo(ctx):
-    e = discord.Embed(title="🤖 Bot Info", color=0x5865F2)
+    e = discord.Embed(title="🤖 Bot Info", color=0xFFFFFF)
     e.add_field(name="Latence", value=f"{round(bot.latency*1000)}ms", inline=True)
     e.add_field(name="Serveurs", value=len(bot.guilds), inline=True)
     e.add_field(name="Commandes", value=len(bot.commands), inline=True)
@@ -366,7 +364,7 @@ async def embed(ctx, *, text: str):
     parts = [p.strip() for p in text.split("|")]
     title = parts[0] if len(parts) > 0 else "Embed"
     desc  = parts[1] if len(parts) > 1 else ""
-    color = 0x5865F2
+    color = 0xFFFFFF
     if len(parts) > 2:
         try:
             color = int(parts[2].lstrip("#"), 16)
@@ -388,7 +386,7 @@ async def afk(ctx, *, reason="AFK"):
 
 @bot.command()
 async def poll(ctx, *, question: str):
-    e = discord.Embed(title="📊 Sondage", description=question, color=0x5865F2)
+    e = discord.Embed(title="📊 Sondage", description=question, color=0xFFFFFF)
     e.set_footer(text=f"Sondage par {ctx.author}")
     msg = await ctx.send(embed=e)
     await msg.add_reaction("✅")
@@ -404,7 +402,7 @@ async def timer(ctx, seconds: int):
 
 @bot.command()
 async def ping(ctx):
-    await ctx.send(embed=discord.Embed(description=f"🏓 Pong ! `{round(bot.latency*1000)}ms`", color=0x57F287))
+    await ctx.send(embed=discord.Embed(description=f"🏓 Pong ! `{round(bot.latency*1000)}ms`", color=0xFFFFFF))
 
 @bot.command()
 @commands.has_permissions(manage_roles=True)
@@ -420,9 +418,9 @@ async def removerole(ctx, member: discord.Member, *, role: discord.Role):
 
 @bot.command()
 @commands.has_permissions(manage_nicknames=True)
-async def nick(ctx, member: discord.Member, *, nickname: str):
+async def rename(ctx, member: discord.Member, *, nickname: str):
     await member.edit(nick=nickname)
-    await ctx.send(f"✅ Pseudo de **{member}** changé en **{nickname}**.")
+    await ctx.send(embed=mod_embed("✅ Pseudo changé", f"Le pseudo de **{member}** a été changé en **{nickname}**."))
 
 @bot.command()
 @commands.has_permissions(manage_messages=True)
@@ -450,11 +448,11 @@ async def on_command_error(ctx, error):
         await ctx.send(f"❌ Erreur : `{error}`", delete_after=8)
 
 TICKET_CATEGORIES = {
-    "recrutement_cm": {"label": "Recrutement-CM", "category": "Ticket Recrutement CM", "roles": ["👑 | Fondateur", "👑 | Co-Fondateur", "💼  | Gérant Staff"], "color": 0x5865F2, "emoji": "🔖"},
-    "ticket_autre": {"label": "Ticket-autre", "category": "Ticket Autre", "roles": ["🔧  | Modérateur", "💼  | Gérant Staff"], "color": 0xEB459E, "emoji": "❓"},
-    "recrutement_staff": {"label": "Recrutement-STAFF", "category": "Ticket Recrutement Staff", "roles": ["👑 | Fondateur", "👑 | Co-Fondateur", "💼  | Gérant Staff"], "color": 0xFEE75C, "emoji": "💼"},
-    "recrutement_graphique": {"label": "Recrutement-Graphique", "category": "Ticket Recrutement Graphique", "roles": ["👑 | Fondateur", "👑 | Co-Fondateur", "💼  | Gérant Staff"], "color": 0x57F287, "emoji": "🎨"},
-    "ticket_shop": {"label": "Ticket-shop", "category": "Ticket Shop", "roles": ["🔧  | Modérateur", "💼  | Gérant Staff"], "color": 0xED4245, "emoji": "🎫"},
+    "recrutement_cm": {"label": "Recrutement-CM", "category": "Ticket Recrutement CM", "roles": ["👑 | Fondateur", "👑 | Co-Fondateur", "💼  | Gérant Staff"], "color": 0xFFFFFF, "emoji": "🔖"},
+    "ticket_autre": {"label": "Ticket-autre", "category": "Ticket Autre", "roles": ["🔧  | Modérateur", "💼  | Gérant Staff"], "color": 0xFFFFFF, "emoji": "❓"},
+    "recrutement_staff": {"label": "Recrutement-STAFF", "category": "Ticket Recrutement Staff", "roles": ["👑 | Fondateur", "👑 | Co-Fondateur", "💼  | Gérant Staff"], "color": 0xFFFFFF, "emoji": "💼"},
+    "recrutement_graphique": {"label": "Recrutement-Graphique", "category": "Ticket Recrutement Graphique", "roles": ["👑 | Fondateur", "👑 | Co-Fondateur", "💼  | Gérant Staff"], "color": 0xFFFFFF, "emoji": "🎨"},
+    "ticket_shop": {"label": "Ticket-shop", "category": "Ticket Shop", "roles": ["🔧  | Modérateur", "💼  | Gérant Staff"], "color": 0xFFFFFF, "emoji": "🎫"},
 }
 
 class TicketSelect(discord.ui.Select):
@@ -483,7 +481,7 @@ class TicketSelect(discord.ui.Select):
             if role:
                 overwrites[role] = discord.PermissionOverwrite(view_channel=True, send_messages=True, read_message_history=True, manage_messages=True)
         channel = await category.create_text_channel(name=f"ticket-{member.name.lower().replace(' ', '-')}", overwrites=overwrites, topic=f"Ticket de {member} | {cfg['label']}")
-        e = discord.Embed(title=f"{cfg['emoji']} Ticket – {cfg['label']}", description=f"Bonjour {member.mention} ! 👋\n\nUn membre du staff va te répondre dans les plus brefs délais.\nDécris ta demande en détail ci-dessous.\n\nPour fermer ce ticket, clique sur 🔒 ci-dessous.", color=cfg["color"], timestamp=datetime.datetime.utcnow())
+        e = discord.Embed(title=f"{cfg['emoji']} Ticket – {cfg['label']}", description=f"Bonjour {member.mention} ! 👋\n\nUn membre du staff va te répondre dans les plus brefs délais.\nDécris ta demande en détail ci-dessous.\n\nPour fermer ce ticket, clique sur 🔒 ci-dessous.", color=0xFFFFFF, timestamp=datetime.datetime.utcnow())
         e.set_footer(text=f"Ticket ouvert par {member}", icon_url=member.display_avatar.url)
         await channel.send(embed=e, view=TicketControlView())
         await interaction.response.send_message(f"✅ Ton ticket a été créé : {channel.mention}", ephemeral=True)
@@ -499,10 +497,25 @@ class TicketControlView(discord.ui.View):
 
     @discord.ui.button(label="Fermer le ticket", style=discord.ButtonStyle.danger, emoji="🔒", custom_id="close_ticket")
     async def close_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):
-        e = discord.Embed(title="🔒 Ticket fermé", description=f"Fermé par {interaction.user.mention}. Suppression dans **5 secondes**.", color=0xFFFFFF, timestamp=datetime.datetime.utcnow())
+        guild = interaction.guild
+        channel = interaction.channel
+        closed_category = discord.utils.get(guild.categories, name="Ticket Fermé")
+        if not closed_category:
+            closed_category = await guild.create_category("Ticket Fermé")
+        await channel.set_permissions(guild.default_role, view_channel=False, send_messages=False)
+        for overwrite_target in list(channel.overwrites):
+            if isinstance(overwrite_target, discord.Member) and overwrite_target != guild.me:
+                await channel.set_permissions(overwrite_target, view_channel=True, send_messages=False, read_message_history=True)
+        await channel.edit(category=closed_category, name=f"fermé-{channel.name}")
+        e = discord.Embed(title="🔒 Ticket fermé", description=f"Ce ticket a été fermé par {interaction.user.mention}.\nIl est maintenant en lecture seule.", color=0xFFFFFF, timestamp=datetime.datetime.utcnow())
+        await interaction.response.send_message(embed=e)
+
+    @discord.ui.button(label="Supprimer", style=discord.ButtonStyle.danger, emoji="🗑️", custom_id="delete_ticket")
+    async def delete_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):
+        e = discord.Embed(title="🗑️ Suppression", description=f"Ticket supprimé par {interaction.user.mention}. Suppression dans **5 secondes**.", color=0xFFFFFF, timestamp=datetime.datetime.utcnow())
         await interaction.response.send_message(embed=e)
         await asyncio.sleep(5)
-        await interaction.channel.delete(reason=f"Ticket fermé par {interaction.user}")
+        await interaction.channel.delete(reason=f"Ticket supprimé par {interaction.user}")
 
     @discord.ui.button(label="Sauvegarder", style=discord.ButtonStyle.secondary, emoji="💾", custom_id="save_ticket")
     async def save_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):

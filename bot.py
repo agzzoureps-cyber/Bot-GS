@@ -459,7 +459,7 @@ TICKET_CATEGORIES = {
     "ticket_autre": {"label": "Ticket-autre", "category": "Ticket Autre", "roles": ["🔧  | Modérateur", "💼  | Gérant Staff"], "color": 0xFFFFFF, "emoji": "❓"},
     "recrutement_staff": {"label": "Recrutement-STAFF", "category": "Ticket Recrutement Staff", "roles": ["👑 | Fondateur", "👑 | Co-Fondateur", "💼  | Gérant Staff"], "color": 0xFFFFFF, "emoji": "💼"},
     "recrutement_graphique": {"label": "Recrutement-Graphique", "category": "Ticket Recrutement Graphique", "roles": ["👑 | Fondateur", "👑 | Co-Fondateur", "💼  | Gérant Staff"], "color": 0xFFFFFF, "emoji": "🎨"},
-    "ticket_shop": {"label": "Ticket-shop", "category": "Ticket Shop", "roles": ["🔧  | Modérateur", "💼  | Gérant Staff"], "color": 0xFFFFFF, "emoji": "🎫"},
+    "ticket_shop": {"label": "Ticket-shop", "category": "Ticket Shop", "roles": ["🔧  | Modérateur", "💼  | Gérant Staff", "🎨 | Graphiste"], "color": 0xFFFFFF, "emoji": "🎫"},
 }
 
 class TicketSelect(discord.ui.Select):

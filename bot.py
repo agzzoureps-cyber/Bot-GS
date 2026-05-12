@@ -571,5 +571,21 @@ async def on_ready():
     bot.add_view(TicketSelectView())
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="discord.gg/graphstudio"))
     print(f"✅ Connecté en tant que {bot.user} (ID: {bot.user.id})")
+        
+@bot.event
+async def on_member_update(before, after):
+    booster_role = discord.utils.get(after.guild.roles, name="🔮| Booster")
+    vip_role = discord.utils.get(after.guild.roles, name="⭐️ | VIP GraphStudio")
 
+    if not booster_role or not vip_role:
+        return
+
+    if booster_role in before.roles and booster_role not in after.roles:
+        if vip_role in after.roles:
+            await after.remove_roles(vip_role, reason="Plus booster")
+            try:
+                await after.send(f"💔 Tu as perdu le rôle **{vip_role.name}** car tu ne boostes plus le serveur.")
+            except Exception:
+                pass
+                
 bot.run(TOKEN)

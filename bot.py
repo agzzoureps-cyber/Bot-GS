@@ -587,5 +587,15 @@ async def on_member_update(before, after):
                 await after.send(f"💔 Tu as perdu le rôle **{vip_role.name}** car tu ne boostes plus le serveur.")
             except Exception:
                 pass
+
+@bot.command()
+@commands.has_permissions(manage_messages=True)
+async def img(ctx, url: str = None, *, description: str = ""):
+    await ctx.message.delete()
+    if not url:
+        return await ctx.send("❌ Donne une URL d'image. Ex: `+img https://...`", delete_after=5)
+    e = discord.Embed(description=description if description else None, color=0xFFFFFF)
+    e.set_image(url=url)
+    await ctx.send(embed=e)
                 
 bot.run(TOKEN)

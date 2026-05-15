@@ -473,7 +473,7 @@ async def on_command_error(ctx, error):
     else:
         await ctx.send(f"❌ Erreur : `{error}`", delete_after=8)
 
-ROLES_AUTORISES = ["💼  | Gérant Staff", "🔧  | Modérateur", "👑 | Fondateur", "👑 | Co-Fondateur"]
+ROLES_AUTORISES = ["💼  | Gérant Staff", "👑 | Fondateur", "👑 | Co-Fondateur"]
 
 @bot.check
 async def global_check(ctx):

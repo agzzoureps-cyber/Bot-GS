@@ -477,7 +477,7 @@ ROLES_AUTORISES = ["💼  | Gérant Staff", "🔧  | Modérateur", "👑 | Fonda
 
 @bot.check
 async def global_check(ctx):
-    if ctx.author.id == 123456789:  # ← remplace par ton ID Discord
+    if ctx.author.id == 1327982910619516999:
         return True
     user_roles = [r.name for r in ctx.author.roles]
     if any(r in user_roles for r in ROLES_AUTORISES):

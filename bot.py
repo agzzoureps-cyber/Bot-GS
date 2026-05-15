@@ -624,7 +624,18 @@ async def img(ctx, *urls: str):
     await ctx.message.delete()
     if not urls:
         return await ctx.send("❌ Donne au moins une URL. Ex: `+img url1 url2 url3`", delete_after=5)
-    for url in urls[:4]:
-        await ctx.send(url)
+    import aiohttp
+    files = []
+    async with aiohttp.ClientSession() as session:
+        for i, url in enumerate(urls[:4]):
+            async with session.get(url) as resp:
+                if resp.status == 200:
+                    data = await resp.read()
+                    ext = url.split(".")[-1].split("?")[0] or "png"
+                    files.append(discord.File(fp=__import__("io").BytesIO(data), filename=f"image{i+1}.{ext}"))
+    if files:
+        await ctx.send(files=files)
+    else:
+        await ctx.send("❌ Impossible de récupérer les images.", delete_after=5)
                 
 bot.run(TOKEN)

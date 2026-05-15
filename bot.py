@@ -229,6 +229,25 @@ async def clear(ctx, amount: int):
     await ctx.send(f"🗑️ {len(deleted)-1} message(s) supprimé(s).", delete_after=5)
 
 @bot.command()
+@commands.has_permissions(moderate_members=True)
+async def to(ctx, member: discord.Member, duration: str = "10m", *, reason="Aucune raison fournie"):
+    seconds = parse_duration(duration)
+    if not seconds:
+        return await ctx.send("❌ Durée invalide. Ex: `+to @user 10m raison`")
+    until = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=seconds)
+    await member.timeout(until, reason=reason)
+    e = mod_embed("🔇 Timeout", f"**{member}** a été mis en timeout.", Durée=duration, Raison=reason, Modérateur=str(ctx.author))
+    await ctx.send(embed=e)
+    await log_action(ctx.guild, e)
+
+@bot.command()
+@commands.has_permissions(moderate_members=True)
+async def unto(ctx, member: discord.Member):
+    await member.timeout(None)
+    e = mod_embed("✅ Timeout retiré", f"**{member}** n'est plus en timeout.", Modérateur=str(ctx.author))
+    await ctx.send(embed=e)
+
+@bot.command()
 @commands.has_permissions(manage_messages=True)
 async def purgeuser(ctx, member: discord.Member, amount: int = 50):
     deleted = await ctx.channel.purge(limit=200, check=lambda m: m.author == member)
@@ -454,6 +473,17 @@ async def on_command_error(ctx, error):
     else:
         await ctx.send(f"❌ Erreur : `{error}`", delete_after=8)
 
+ROLES_AUTORISES = ["💼  | Gérant Staff", "🔧  | Modérateur", "👑 | Fondateur", "👑 | Co-Fondateur"]
+
+@bot.check
+async def global_check(ctx):
+    if ctx.author.id == 123456789:  # ← remplace par ton ID Discord
+        return True
+    user_roles = [r.name for r in ctx.author.roles]
+    if any(r in user_roles for r in ROLES_AUTORISES):
+        return True
+    return False
+
 TICKET_CATEGORIES = {
     "recrutement_cm": {"label": "Recrutement-CM", "category": "Ticket Recrutement CM", "roles": ["👑 | Fondateur", "👑 | Co-Fondateur", "💼  | Gérant Staff"], "color": 0xFFFFFF, "emoji": "🔖"},
     "ticket_autre": {"label": "Ticket-autre", "category": "Ticket Autre", "roles": ["🔧  | Modérateur", "💼  | Gérant Staff"], "color": 0xFFFFFF, "emoji": "❓"},
@@ -590,12 +620,11 @@ async def on_member_update(before, after):
 
 @bot.command()
 @commands.has_permissions(manage_messages=True)
-async def img(ctx, url: str = None, *, description: str = ""):
+async def img(ctx, *urls: str):
     await ctx.message.delete()
-    if not url:
-        return await ctx.send("❌ Donne une URL d'image. Ex: `+img https://...`", delete_after=5)
-    e = discord.Embed(description=description if description else None, color=0xFFFFFF)
-    e.set_image(url=url)
-    await ctx.send(embed=e)
+    if not urls:
+        return await ctx.send("❌ Donne au moins une URL. Ex: `+img url1 url2 url3`", delete_after=5)
+    for url in urls[:4]:
+        await ctx.send(url)
                 
 bot.run(TOKEN)

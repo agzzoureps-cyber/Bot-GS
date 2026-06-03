@@ -637,5 +637,30 @@ async def img(ctx, *urls: str):
         await ctx.send(files=files)
     else:
         await ctx.send("❌ Impossible de récupérer les images.", delete_after=5)
+
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def dmall(ctx, *, message: str):
+    await ctx.send("📨 Envoi des DMs en cours...", delete_after=5)
+    success = 0
+    failed = 0
+    for member in ctx.guild.members:
+        if not member.bot:
+            try:
+                e = discord.Embed(
+                    title=f"📢 Message de {ctx.guild.name}",
+                    description=message,
+                    color=0xFFFFFF,
+                    timestamp=datetime.datetime.utcnow()
+                )
+                e.set_footer(text=f"Envoyé par {ctx.author}", icon_url=ctx.author.display_avatar.url)
+                if ctx.guild.icon:
+                    e.set_thumbnail(url=ctx.guild.icon.url)
+                await member.send(embed=e)
+                success += 1
+                await asyncio.sleep(1)
+            except Exception:
+                failed += 1
+    await ctx.send(embed=mod_embed("📨 DM terminé", f"✅ Envoyé : **{success}**\n❌ Échoué : **{failed}**"))
                 
 bot.run(TOKEN)

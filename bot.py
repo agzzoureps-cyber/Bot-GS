@@ -477,7 +477,7 @@ ROLES_AUTORISES = ["💼  | Gérant Staff", "👑 | Fondateur", "👑 | Co-Fonda
 
 @bot.check
 async def global_check(ctx):
-    if ctx.author.id == 1327982910619516999:
+    if ctx.author.id in [1327982910619516999, 1364650566684512346]: 
         return True
     user_roles = [r.name for r in ctx.author.roles]
     if any(r in user_roles for r in ROLES_AUTORISES):

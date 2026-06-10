@@ -668,7 +668,8 @@ async def on_member_join(member):
     channel = bot.get_channel(1495455893863665714)
     if channel:
         await channel.send(
-            f"{member.mention} N'oublie pas de cocher et d'accepter le règlement !"
+            f"{member.mention} N'oublie pas de cocher et d'accepter le règlement !",
+            delete_after=30
         )
                 
 bot.run(TOKEN)

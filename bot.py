@@ -662,5 +662,13 @@ async def dmall(ctx, *, message: str):
             except Exception:
                 failed += 1
     await ctx.send(embed=mod_embed("📨 DM terminé", f"✅ Envoyé : **{success}**\n❌ Échoué : **{failed}**"))
+
+@bot.event
+async def on_member_join(member):
+    channel = bot.get_channel(1495455893863665714)
+    if channel:
+        await channel.send(
+            f"{member.mention} N'oublie pas de cocher et d'accepter le règlement !"
+        )
                 
 bot.run(TOKEN)

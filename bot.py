@@ -42,10 +42,16 @@ async def on_message_edit(before, after):
         "timestamp": datetime.datetime.utcnow()
     }
 
+NUMBER_EMOJIS = ["1️⃣","2️⃣","3️⃣","4️⃣","5️⃣"]
+VOTE_CHANNEL_ID = 1515420912286175242
+
 @bot.event
 async def on_message(message):
     if message.author.bot:
         return
+    if message.channel.id == VOTE_CHANNEL_ID:
+        for emoji in NUMBER_EMOJIS:
+            await message.add_reaction(emoji)
     if message.author.id in afk_users:
         reason = afk_users.pop(message.author.id)
         await message.channel.send(f"👋 Bienvenue {message.author.mention} ! Tu n'es plus AFK (tu l'étais : *{reason}*).", delete_after=8)
@@ -604,19 +610,36 @@ async def on_ready():
         
 @bot.event
 async def on_member_update(before, after):
+    # Message boost
+    if after.premium_since and not before.premium_since:
+        channel = bot.get_channel(1495462875609698305)
+        if channel:
+            e = discord.Embed(
+                title="🚀 Merci d'avoir boosté le serveur !",
+                description=(
+                    f"Un immense merci à {after.mention} pour le boost de **GraphStudio** !\n\n"
+                    f"🚀 Avantages exclusifs\n"
+                    f"🎨 Salon dédié boosteurs\n"
+                    f"🎁 Giveaways boostés"
+                ),
+                color=0xFFFFFF,
+                timestamp=datetime.datetime.utcnow()
+            )
+            e.set_thumbnail(url=after.display_avatar.url)
+            e.set_footer(text="GraphStudio", icon_url=after.guild.icon.url if after.guild.icon else None)
+            await channel.send(embed=e)
+
+    # VIP auto-remove si plus booster
     booster_role = discord.utils.get(after.guild.roles, name="🔮| Booster")
     vip_role = discord.utils.get(after.guild.roles, name="⭐️ | VIP GraphStudio")
-
-    if not booster_role or not vip_role:
-        return
-
-    if booster_role in before.roles and booster_role not in after.roles:
-        if vip_role in after.roles:
-            await after.remove_roles(vip_role, reason="Plus booster")
-            try:
-                await after.send(f"💔 Tu as perdu le rôle **{vip_role.name}** car tu ne boostes plus le serveur.")
-            except Exception:
-                pass
+    if booster_role and vip_role:
+        if booster_role in before.roles and booster_role not in after.roles:
+            if vip_role in after.roles:
+                await after.remove_roles(vip_role, reason="Plus booster")
+                try:
+                    await after.send(f"💔 Tu as perdu le rôle **{vip_role.name}** car tu ne boostes plus le serveur.")
+                except Exception:
+                    pass
 
 @bot.command()
 @commands.has_permissions(manage_messages=True)
@@ -665,11 +688,45 @@ async def dmall(ctx, *, message: str):
 
 @bot.event
 async def on_member_join(member):
-    channel = bot.get_channel(1495455893863665714)
-    if channel:
-        await channel.send(
+    # Message règlement
+    reglement_channel = bot.get_channel(1495455893863665714)
+    if reglement_channel:
+        await reglement_channel.send(
             f"{member.mention} N'oublie pas de cocher et d'accepter le règlement !",
             delete_after=30
         )
+
+    # Message de bienvenue
+    channel = bot.get_channel(1495455717220417709)
+    if not channel:
+        return
+
+    inviter = None
+    try:
+        invites = await member.guild.invites()
+        for invite in invites:
+            if invite.uses > 0:
+                inviter = invite.inviter
+                break
+    except Exception:
+        pass
+
+    guild = member.guild
+    e = discord.Embed(
+        title="🎨 Bienvenue dans GraphStudio",
+        description=(
+            f"Bienvenue **{member.name}**, installe-toi bien parmi nous.\n\n"
+            f"🎨 Pour commencer, poste ta première créa dans <#1515420912286175242>\n\n"
+            f"🎁 Giveaways, entraide GFX et commandes t'attendent ensuite."
+        ),
+        color=0xFFFFFF,
+        timestamp=datetime.datetime.utcnow()
+    )
+    e.set_thumbnail(url=member.display_avatar.url)
+    e.add_field(name="🔗 Invité par", value=f"{inviter.mention if inviter else 'Inconnu'}", inline=True)
+    e.add_field(name="📅 Arrivée", value="1ère fois ici", inline=True)
+    e.add_field(name="👥 Membres", value=f"{guild.member_count} au total", inline=True)
+    e.set_footer(text="GraphStudio", icon_url=guild.icon.url if guild.icon else None)
+    await channel.send(embed=e)
                 
 bot.run(TOKEN)

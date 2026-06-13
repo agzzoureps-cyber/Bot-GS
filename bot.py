@@ -728,5 +728,49 @@ async def on_member_join(member):
     e.add_field(name="👥 Membres", value=f"{guild.member_count} au total", inline=True)
     e.set_footer(text="GraphStudio", icon_url=guild.icon.url if guild.icon else None)
     await channel.send(embed=e)
+
+@bot.command()
+@commands.has_permissions(manage_messages=True)
+async def rate(ctx, member: discord.Member = None):
+    import random
+    note = random.randint(1, 10)
+    bars = "█" * note + "░" * (10 - note)
+    e = discord.Embed(title="🎨 Notation GFX", description=f"{'**' + member.mention + '**' if member else 'Ta création'} obtient :\n\n`{bars}` **{note}/10**", color=0xFFFFFF)
+    await ctx.send(embed=e)
+
+@bot.command()
+@commands.has_permissions(manage_messages=True)
+async def gfx(ctx, *, titre: str):
+    e = discord.Embed(title="🎨 Commande GFX disponible", description=titre, color=0xFFFFFF, timestamp=datetime.datetime.utcnow())
+    e.set_footer(text=f"Posté par {ctx.author}", icon_url=ctx.author.display_avatar.url)
+    await ctx.message.delete()
+    await ctx.send(embed=e)
+
+@bot.command()
+@commands.has_permissions(manage_messages=True)
+async def concours(ctx, *, description: str):
+    e = discord.Embed(title="🏆 Concours GFX", description=description, color=0xFFFFFF, timestamp=datetime.datetime.utcnow())
+    e.set_footer(text=f"GraphStudio • Organisé par {ctx.author}")
+    msg = await ctx.send(embed=e)
+    await msg.add_reaction("🎨")
+    await msg.add_reaction("🏆")
+    await ctx.message.delete()
+
+@bot.command()
+@commands.has_permissions(manage_messages=True)
+async def showcase(ctx, member: discord.Member, *, description: str):
+    e = discord.Embed(title="⭐ Showcase GFX", description=f"Félicitations à {member.mention} !\n\n{description}", color=0xFFFFFF, timestamp=datetime.datetime.utcnow())
+    e.set_thumbnail(url=member.display_avatar.url)
+    e.set_footer(text="GraphStudio • Showcase")
+    await ctx.message.delete()
+    await ctx.send(embed=e)
+
+@bot.command()
+@commands.has_permissions(manage_messages=True)
+async def feedback(ctx, member: discord.Member, *, avis: str):
+    e = discord.Embed(title="💬 Feedback GFX", description=f"Feedback pour {member.mention} :\n\n{avis}", color=0xFFFFFF, timestamp=datetime.datetime.utcnow())
+    e.set_footer(text=f"Par {ctx.author}", icon_url=ctx.author.display_avatar.url)
+    await ctx.message.delete()
+    await ctx.send(embed=e)
                 
 bot.run(TOKEN)

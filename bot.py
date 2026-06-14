@@ -725,7 +725,7 @@ async def on_member_join(member):
     e.set_thumbnail(url=member.display_avatar.url)
     e.add_field(name="🔗 Invité par", value=f"{inviter.mention if inviter else 'Inconnu'}", inline=True)
     e.add_field(name="📅 Arrivée", value="1ère fois ici", inline=True)
-    e.add_field(name="👥 Membres", value=f"{guild.member_count} au total", inline=True)
+    e.add_field(name="👥 Membres", value=f"{guild.member_count - 1} au total", inline=True)
     e.set_footer(text="GraphStudio", icon_url=guild.icon.url if guild.icon else None)
     await channel.send(embed=e)
 
